@@ -219,12 +219,40 @@
                 border-radius: 15px;
                 margin-top: 20px;
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
             }
 
             .chart-container h3 {
                 color: #2c3e50;
                 margin-bottom: 15px;
                 text-align: center;
+            }
+
+            .chart-wrapper {
+                position: relative;
+                height: 400px;
+                width: 100%;
+                min-width: 100%;
+            }
+
+            @media (max-width: 768px) {
+                .chart-wrapper {
+                    height: 300px;
+                    min-width: 90vw;
+                }
+                
+                .chart-container {
+                    padding: 10px;
+                    margin-left: -10px;
+                    margin-right: -10px;
+                    border-radius: 0;
+                }
+                
+                .results-section {
+                    padding: 15px;
+                }
             }
 
             @media (max-width: 1200px) {
@@ -759,7 +787,9 @@
 
                 <div class="chart-container">
                     <h3>Progress Timeline</h3>
-                    <canvas id="progressChart" width="400" height="200"></canvas>
+                    <div class="chart-wrapper">
+                        <canvas id="progressChart"></canvas>
+                    </div>
                 </div>
             `;
 
@@ -775,12 +805,40 @@
                     progressChart.destroy();
                 }
 
+                // Aggressively optimize data points - sample every 5-10 days for performance
+                let sampledProgress = [];
+                const maxPoints = 50; // Limit to 50 points maximum for performance
+                
+                if (progress.length > maxPoints) {
+                    const step = Math.ceil(progress.length / maxPoints);
+                    for (let i = 0; i < progress.length; i += step) {
+                        sampledProgress.push(progress[i]);
+                    }
+                    // Always include the last point
+                    sampledProgress.push(progress[progress.length - 1]);
+                    
+                    // Always include withdrawal points
+                    progress.forEach(point => {
+                        if (point.isWithdrawal) {
+                            sampledProgress.push(point);
+                        }
+                    });
+                    
+                    // Remove duplicates and sort
+                    sampledProgress = sampledProgress.filter((point, index, array) => 
+                        index === array.findIndex(p => p.day === point.day && p.isWithdrawal === point.isWithdrawal)
+                    );
+                    sampledProgress.sort((a, b) => a.day - b.day);
+                } else {
+                    sampledProgress = progress;
+                }
+
                 // Prepare data for the chart
                 const labels = [];
                 const balanceData = [];
                 const withdrawalData = [];
 
-                progress.forEach(point => {
+                sampledProgress.forEach(point => {
                     const date = new Date(startDate);
                     date.setDate(date.getDate() + point.day);
                     labels.push(date.toLocaleDateString('en-GB', {
@@ -798,6 +856,14 @@
                     }
                 });
 
+                // Calculate Y-axis range with forced $5K steps
+                const maxAmount = Math.max(...balanceData);
+                const minAmount = Math.min(...balanceData);
+                
+                // Round min down to nearest 5K, max up to nearest 5K
+                const yMin = Math.floor(minAmount / 5000) * 5000;
+                const yMax = Math.ceil(maxAmount / 5000) * 5000;
+
                 progressChart = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -810,7 +876,9 @@
                                 backgroundColor: 'rgba(79, 172, 254, 0.1)',
                                 borderWidth: 2,
                                 fill: true,
-                                tension: 0.1
+                                tension: 0.1,
+                                pointRadius: 0,
+                                pointHoverRadius: 6
                             },
                             {
                                 label: 'Withdrawals',
@@ -828,26 +896,55 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        animation: {
+                            duration: 0 // Disable animation for better performance
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
                         scales: {
                             x: {
                                 display: true,
                                 title: {
                                     display: true,
-                                    text: 'Date'
+                                    text: 'Date',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
                                 },
                                 ticks: {
-                                    maxTicksLimit: 10
+                                    maxTicksLimit: window.innerWidth < 768 ? 6 : 10,
+                                    font: {
+                                        size: 12
+                                    }
                                 }
                             },
                             y: {
                                 display: true,
+                                min: yMin,
+                                max: yMax,
                                 title: {
                                     display: true,
-                                    text: 'Amount ($)'
+                                    text: 'Amount ($)',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
                                 },
                                 ticks: {
+                                    stepSize: 5000, // Force exactly $5K steps
                                     callback: function(value) {
-                                        return '$' + value.toFixed(0);
+                                        if (value >= 1000000) {
+                                            return '$' + (value / 1000000).toFixed(1) + 'M';
+                                        } else if (value >= 1000) {
+                                            return '$' + (value / 1000).toFixed(0) + 'K';
+                                        }
+                                        return '$' + value.toLocaleString();
+                                    },
+                                    font: {
+                                        size: 12
                                     }
                                 }
                             }
@@ -855,22 +952,28 @@
                         plugins: {
                             legend: {
                                 display: true,
-                                position: 'top'
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        size: 14
+                                    }
+                                }
                             },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        const point = progress[context.dataIndex];
+                                        const point = sampledProgress[context.dataIndex];
+                                        
                                         if (context.datasetIndex === 0) {
-                                            let label = `Balance: $${context.parsed.y.toFixed(2)}`;
+                                            let label = `Balance: $${context.parsed.y.toLocaleString()}`;
                                             if (point.isWithdrawal) {
-                                                label += ` (After withdrawal of $${point.withdrawalAmount.toFixed(2)})`;
+                                                label += ` (After withdrawal of $${point.withdrawalAmount.toLocaleString()})`;
                                             } else if (point.timesToday > 0) {
                                                 label += ` (${point.timesToday}x growth)`;
                                             }
                                             return label;
                                         } else {
-                                            return `Withdrawal: $${point.withdrawalAmount.toFixed(2)}`;
+                                            return `Withdrawal: $${point.withdrawalAmount.toLocaleString()}`;
                                         }
                                     }
                                 }
