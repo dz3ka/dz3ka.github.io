@@ -254,6 +254,15 @@
                     </div>
 
                     <div class="input-group">
+                        <label for="startDate">Starting Date</label>
+                        <input
+                            type="date"
+                            id="startDate"
+                            value="${new Date().toISOString().split('T')[0]}"
+                        />
+                    </div>
+
+                    <div class="input-group">
                         <label for="growthRate"
                             >Growth Rate per Occurrence (%)</label
                         >
@@ -530,11 +539,29 @@
             ) {
                 const resultsContainer =
                     document.getElementById("resultsContainer");
+                
+                // Calculate completion date
+                const startDate = new Date(document.getElementById("startDate").value);
+                const completionDate = new Date(startDate);
+                completionDate.setDate(completionDate.getDate() + days);
+                
+                const formatDate = (date) => {
+                    return date.toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    }).replace(/\//g, '-');
+                };
 
                 resultsContainer.innerHTML = `
                 <div class="result-card">
                     <div class="result-value">${days} days</div>
                     <div class="result-label">Days needed to reach target</div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-value">${formatDate(completionDate)}</div>
+                    <div class="result-label">Projected completion date</div>
                 </div>
 
                 <div class="result-card">
@@ -556,12 +583,16 @@
                     <h3 style="margin-bottom: 15px; color: #2c3e50;">Progress Timeline</h3>
                     ${progress
                         .map(
-                            (p) => `
-                        <div class="progress-item">
-                            <span class="day-info">Day ${p.day} (${p.timesToday}x/day)</span>
-                            <span class="amount-info">$${p.amount.toFixed(2)}</span>
-                        </div>
-                    `,
+                            (p) => {
+                                const progressDate = new Date(startDate);
+                                progressDate.setDate(progressDate.getDate() + p.day);
+                                return `
+                                <div class="progress-item">
+                                    <span class="day-info">Day ${p.day} (${p.timesToday}x/day) - ${formatDate(progressDate)}</span>
+                                    <span class="amount-info">$${p.amount.toFixed(2)}</span>
+                                </div>
+                            `;
+                            },
                         )
                         .join("")}
                 </div>
