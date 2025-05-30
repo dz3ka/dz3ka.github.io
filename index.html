@@ -266,14 +266,33 @@
                     </div>
 
                     <div class="input-group">
-                        <label for="targetMultiplier">Target Multiplier</label>
-                        <select id="targetMultiplier">
-                            <option value="2">Double (2x)</option>
-                            <option value="3">Triple (3x)</option>
-                            <option value="1.5">1.5x</option>
-                            <option value="5">5x</option>
-                            <option value="10">10x</option>
+                        <label for="targetType">Target Type</label>
+                        <select id="targetType" onchange="toggleTargetInput()">
+                            <option value="multiplier">Target Multiplier</option>
+                            <option value="amount">Specific Amount</option>
                         </select>
+                    </div>
+
+                    <div class="input-group" id="multiplierGroup">
+                        <label for="targetMultiplier">Target Multiplier</label>
+                        <input
+                            type="number"
+                            id="targetMultiplier"
+                            value="2"
+                            step="0.01"
+                            min="1.01"
+                        />
+                    </div>
+
+                    <div class="input-group" id="amountGroup" style="display: none;">
+                        <label for="targetAmount">Target Amount ($)</label>
+                        <input
+                            type="number"
+                            id="targetAmount"
+                            value="3680"
+                            step="0.01"
+                            min="0.01"
+                        />
                     </div>
 
                     <h2 style="margin-top: 30px">Growth Schedule</h2>
@@ -420,10 +439,20 @@
                 const growthRate =
                     parseFloat(document.getElementById("growthRate").value) /
                     100;
-                const targetMultiplier = parseFloat(
-                    document.getElementById("targetMultiplier").value,
-                );
-                const targetAmount = initialAmount * targetMultiplier;
+                const targetType = document.getElementById("targetType").value;
+                let targetValue;
+
+                if (targetType === "multiplier") {
+                    const targetMultiplier = parseFloat(
+                        document.getElementById("targetMultiplier").value,
+                    );
+                    targetValue = initialAmount * targetMultiplier;
+                } else if (targetType === "amount") {
+                    const targetAmount = parseFloat(
+                        document.getElementById("targetAmount").value,
+                    );
+                    targetValue = targetAmount;
+                }
 
                 // Get schedule
                 const scheduleItems =
@@ -450,7 +479,7 @@
                 let totalOccurrences = 0;
                 const progress = [];
 
-                while (amount < targetAmount && day <= 10000) {
+                while (amount < targetValue && day <= 10000) {
                     // Safety limit
                     // Find applicable schedule for this day
                     let timesToday = 1; // Default
@@ -468,7 +497,7 @@
                     }
 
                     // Log progress every 10 days or when target is reached
-                    if (day % 10 === 0 || amount >= targetAmount) {
+                    if (day % 10 === 0 || amount >= targetValue) {
                         progress.push({
                             day: day,
                             amount: amount,
@@ -476,7 +505,7 @@
                         });
                     }
 
-                    if (amount >= targetAmount) break;
+                    if (amount >= targetValue) break;
                     day++;
                 }
 
@@ -485,7 +514,7 @@
                     day,
                     amount,
                     initialAmount,
-                    targetAmount,
+                    targetValue,
                     totalOccurrences,
                     progress,
                 );
@@ -537,6 +566,20 @@
                         .join("")}
                 </div>
             `;
+            }
+
+            function toggleTargetInput() {
+                const multiplierGroup = document.getElementById("multiplierGroup");
+                const amountGroup = document.getElementById("amountGroup");
+                const targetType = document.getElementById("targetType").value;
+
+                if (targetType === "multiplier") {
+                    multiplierGroup.style.display = "block";
+                    amountGroup.style.display = "none";
+                } else if (targetType === "amount") {
+                    multiplierGroup.style.display = "none";
+                    amountGroup.style.display = "block";
+                }
             }
 
             // Calculate on page load
