@@ -111,6 +111,25 @@
                 border-radius: 5px;
             }
 
+            .withdrawal-item {
+                background: white;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 10px;
+                border: 1px solid #dee2e6;
+                display: grid;
+                grid-template-columns: 1fr 1fr auto;
+                gap: 10px;
+                align-items: center;
+                border-left: 4px solid #dc3545;
+            }
+
+            .withdrawal-item input {
+                padding: 8px;
+                border: 1px solid #ced4da;
+                border-radius: 5px;
+            }
+
             .btn {
                 padding: 12px 24px;
                 border: none;
@@ -149,6 +168,15 @@
 
             .btn-danger:hover {
                 background: #c82333;
+            }
+
+            .btn-warning {
+                background: #fd7e14;
+                color: white;
+            }
+
+            .btn-warning:hover {
+                background: #e8680c;
             }
 
             .results-section {
@@ -199,6 +227,10 @@
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
             }
 
+            .progress-item.withdrawal {
+                border-left: 4px solid #dc3545;
+            }
+
             .day-info {
                 font-weight: 600;
                 color: #2c3e50;
@@ -206,6 +238,11 @@
 
             .amount-info {
                 color: #28a745;
+                font-weight: 600;
+            }
+
+            .withdrawal-info {
+                color: #dc3545;
                 font-weight: 600;
             }
 
@@ -224,11 +261,24 @@
                     grid-template-columns: 1fr;
                     gap: 10px;
                 }
+
+                .withdrawal-item {
+                    grid-template-columns: 1fr;
+                    gap: 10px;
+                }
             }
 
             .add-schedule-btn {
                 width: 100%;
                 margin-top: 15px;
+            }
+
+            .section-divider {
+                margin: 30px 0;
+                border: none;
+                height: 2px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 1px;
             }
         </style>
     </head>
@@ -236,7 +286,7 @@
         <div class="container">
             <div class="header">
                 <h1>Compound Interest Calculator</h1>
-                <p>Calculate growth with flexible daily schedules</p>
+                <p>Calculate growth with flexible daily schedules and withdrawals</p>
             </div>
 
             <div class="content">
@@ -384,6 +434,24 @@
                     >
                         Add Schedule Period
                     </button>
+
+                    <hr class="section-divider">
+
+                    <h2>Withdrawals (Optional)</h2>
+                    <p style="color: #6c757d; margin-bottom: 15px; font-size: 14px;">
+                        Add withdrawals to see how taking money affects your growth
+                    </p>
+                    <div id="withdrawalContainer">
+                        <!-- Withdrawals will be added here -->
+                    </div>
+
+                    <button
+                        class="btn btn-warning add-schedule-btn"
+                        onclick="addWithdrawal()"
+                    >
+                        Add Withdrawal
+                    </button>
+
                     <button
                         class="btn btn-primary"
                         onclick="calculate()"
@@ -441,6 +509,28 @@
                 }
             }
 
+            function addWithdrawal() {
+                const container = document.getElementById("withdrawalContainer");
+                const newWithdrawal = document.createElement("div");
+                newWithdrawal.className = "withdrawal-item";
+                newWithdrawal.innerHTML = `
+                <div>
+                    <label>Day:</label>
+                    <input type="number" class="withdrawal-day" value="30" min="1">
+                </div>
+                <div>
+                    <label>Amount ($):</label>
+                    <input type="number" class="withdrawal-amount" value="500" step="0.01" min="0.01">
+                </div>
+                <button class="btn btn-danger remove-withdrawal" onclick="removeWithdrawal(this)">×</button>
+            `;
+                container.appendChild(newWithdrawal);
+            }
+
+            function removeWithdrawal(button) {
+                button.parentElement.remove();
+            }
+
             function calculate() {
                 const initialAmount = parseFloat(
                     document.getElementById("initialAmount").value,
@@ -479,17 +569,45 @@
                     schedule.push({ fromDay, toDay, timesDay });
                 });
 
-                // Sort schedule by fromDay
+                // Get withdrawals
+                const withdrawalItems = document.querySelectorAll(".withdrawal-item");
+                const withdrawals = [];
+
+                withdrawalItems.forEach((item) => {
+                    const day = parseInt(item.querySelector(".withdrawal-day").value);
+                    const amount = parseFloat(item.querySelector(".withdrawal-amount").value);
+                    withdrawals.push({ day, amount });
+                });
+
+                // Sort schedule by fromDay and withdrawals by day
                 schedule.sort((a, b) => a.fromDay - b.fromDay);
+                withdrawals.sort((a, b) => a.day - b.day);
 
                 // Calculate
                 let amount = initialAmount;
                 let day = 1;
                 let totalOccurrences = 0;
+                let totalWithdrawn = 0;
                 const progress = [];
+                const withdrawalEvents = [];
 
                 while (amount < targetValue && day <= 10000) {
                     // Safety limit
+                    
+                    // Check for withdrawals on this day
+                    const todaysWithdrawals = withdrawals.filter(w => w.day === day);
+                    for (let withdrawal of todaysWithdrawals) {
+                        if (amount >= withdrawal.amount) {
+                            amount -= withdrawal.amount;
+                            totalWithdrawn += withdrawal.amount;
+                            withdrawalEvents.push({
+                                day: day,
+                                amount: withdrawal.amount,
+                                balanceAfter: amount
+                            });
+                        }
+                    }
+
                     // Find applicable schedule for this day
                     let timesToday = 1; // Default
                     for (let sched of schedule) {
@@ -525,7 +643,9 @@
                     initialAmount,
                     targetValue,
                     totalOccurrences,
+                    totalWithdrawn,
                     progress,
+                    withdrawalEvents
                 );
             }
 
@@ -535,7 +655,9 @@
                 initialAmount,
                 targetAmount,
                 totalOccurrences,
+                totalWithdrawn,
                 progress,
+                withdrawalEvents
             ) {
                 const resultsContainer =
                     document.getElementById("resultsContainer");
@@ -553,6 +675,40 @@
                     }).replace(/\//g, '-');
                 };
 
+                // Calculate what would have happened without withdrawals
+                let amountWithoutWithdrawals = initialAmount;
+                let dayCalc = 1;
+                let totalOccCalc = 0;
+                
+                // Get schedule again for comparison calculation
+                const scheduleItems = document.querySelectorAll(".schedule-item");
+                const schedule = [];
+                scheduleItems.forEach((item) => {
+                    const fromDay = parseInt(item.querySelector(".from-day").value);
+                    const toDay = parseInt(item.querySelector(".to-day").value);
+                    const timesDay = parseInt(item.querySelector(".times-day").value);
+                    schedule.push({ fromDay, toDay, timesDay });
+                });
+                schedule.sort((a, b) => a.fromDay - b.fromDay);
+                
+                const growthRate = parseFloat(document.getElementById("growthRate").value) / 100;
+                
+                while (amountWithoutWithdrawals < targetAmount && dayCalc <= days) {
+                    let timesToday = 1;
+                    for (let sched of schedule) {
+                        if (dayCalc >= sched.fromDay && dayCalc <= sched.toDay) {
+                            timesToday = sched.timesDay;
+                            break;
+                        }
+                    }
+                    
+                    for (let i = 0; i < timesToday; i++) {
+                        amountWithoutWithdrawals = amountWithoutWithdrawals * (1 + growthRate);
+                        totalOccCalc++;
+                    }
+                    dayCalc++;
+                }
+
                 resultsContainer.innerHTML = `
                 <div class="result-card">
                     <div class="result-value">${days} days</div>
@@ -568,6 +724,23 @@
                     <div class="result-value">$${finalAmount.toFixed(2)}</div>
                     <div class="result-label">Final amount (Target: $${targetAmount.toFixed(2)})</div>
                 </div>
+
+                ${totalWithdrawn > 0 ? `
+                <div class="result-card" style="border-left-color: #dc3545;">
+                    <div class="result-value">$${totalWithdrawn.toFixed(2)}</div>
+                    <div class="result-label">Total withdrawn</div>
+                </div>
+
+                <div class="result-card" style="border-left-color: #fd7e14;">
+                    <div class="result-value">$${amountWithoutWithdrawals.toFixed(2)}</div>
+                    <div class="result-label">Amount at day ${days} without withdrawals</div>
+                </div>
+
+                <div class="result-card" style="border-left-color: #6c757d;">
+                    <div class="result-value">$${(amountWithoutWithdrawals - finalAmount).toFixed(2)}</div>
+                    <div class="result-label">Impact of withdrawals on final amount</div>
+                </div>
+                ` : ''}
 
                 <div class="result-card">
                     <div class="result-value">${totalOccurrences}</div>
@@ -586,11 +759,21 @@
                             (p) => {
                                 const progressDate = new Date(startDate);
                                 progressDate.setDate(progressDate.getDate() + p.day);
+                                
+                                // Check if there were withdrawals on this day
+                                const dayWithdrawals = withdrawalEvents.filter(w => w.day === p.day);
+                                
                                 return `
                                 <div class="progress-item">
                                     <span class="day-info">Day ${p.day} (${p.timesToday}x/day) - ${formatDate(progressDate)}</span>
                                     <span class="amount-info">$${p.amount.toFixed(2)}</span>
                                 </div>
+                                ${dayWithdrawals.map(w => `
+                                <div class="progress-item withdrawal">
+                                    <span class="day-info">↳ Withdrawal on Day ${w.day}</span>
+                                    <span class="withdrawal-info">-$${w.amount.toFixed(2)} (Balance: $${w.balanceAfter.toFixed(2)})</span>
+                                </div>
+                                `).join('')}
                             `;
                             },
                         )
