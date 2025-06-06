@@ -1,852 +1,651 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Compound Interest Calculator</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-        <style>
-            :root {
-                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-                --border-radius: 15px;
-                --spacing: 20px;
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Growth Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --card-bg: #fff;
+            --result-label: #64748b;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background 0.2s, color 0.2s;
+        }
 
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
 
-            body {
-                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-                background: var(--primary-gradient);
-                min-height: 100vh;
-                padding: var(--spacing);
-                color: #2c3e50;
-            }
+        .card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            transition: background 0.2s, border 0.2s;
+        }
 
+        .card-header {
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem;
+            border-radius: 1rem 1rem 0 0 !important;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-outline-danger {
+            color: #dc2626;
+            border-color: #dc2626;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            background: transparent;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 1rem;
+        }
+
+        .schedule-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .schedule-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 90px;
+        }
+
+        .result-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+            line-height: 1.1;
+        }
+
+        .result-label {
+            font-size: 0.95rem;
+            color: var(--result-label);
+            margin-top: 0.25rem;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
             .container {
-                max-width: 1400px;
-                margin: 0 auto;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: var(--border-radius);
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-                overflow: hidden;
+                padding: 1rem;
             }
 
-            .header {
-                background: var(--secondary-gradient);
-                color: white;
-                padding: 30px;
-                text-align: center;
-            }
-
-            .header h1 {
-                font-size: 2.5rem;
-                margin-bottom: 10px;
-                font-weight: 600;
-            }
-
-            .header p {
-                font-size: 1.1rem;
-                opacity: 0.9;
-            }
-
-            .content {
-                display: grid;
-                grid-template-columns: 1fr 2fr;
-                gap: 30px;
-                padding: 30px;
-            }
-
-            .input-section {
-                background: #f8f9fa;
-                padding: 25px;
-                border-radius: var(--border-radius);
-                border: 1px solid #e9ecef;
-            }
-
-            .input-section h2 {
-                color: #2c3e50;
-                margin-bottom: 20px;
-                font-size: 1.5rem;
-            }
-
-            .input-group {
-                margin-bottom: 20px;
-            }
-
-            .input-group label {
-                display: block;
-                margin-bottom: 8px;
-                font-weight: 600;
-                color: #34495e;
-            }
-
-            .input-group input,
-            .input-group select {
-                width: 100%;
-                padding: 12px;
-                border: 2px solid #e9ecef;
-                border-radius: 8px;
-                font-size: 16px;
-                transition: border-color 0.3s ease;
-            }
-
-            .input-group input:focus,
-            .input-group select:focus {
-                outline: none;
-                border-color: #4facfe;
-            }
-
-            .schedule-item {
-                background: white;
-                padding: 15px;
-                border-radius: 10px;
-                margin-bottom: 10px;
-                border: 1px solid #dee2e6;
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr auto;
-                gap: 10px;
-                align-items: center;
-            }
-
-            .withdrawal-item {
-                background: white;
-                padding: 15px;
-                border-radius: 10px;
-                margin-bottom: 10px;
-                border: 1px solid #dee2e6;
-                display: grid;
-                grid-template-columns: 1fr 1fr auto;
-                gap: 10px;
-                align-items: center;
-                border-left: 4px solid #dc3545;
-            }
-
-            .btn {
-                padding: 12px 24px;
-                border: none;
-                border-radius: 8px;
-                font-size: 16px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-
-            .btn-primary {
-                background: var(--primary-gradient);
-                color: white;
-            }
-
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-            }
-
-            .btn-secondary {
-                background: #6c757d;
-                color: white;
-            }
-
-            .btn-secondary:hover {
-                background: #5a6268;
-            }
-
-            .btn-danger {
-                background: #dc3545;
-                color: white;
-            }
-
-            .btn-danger:hover {
-                background: #c82333;
-            }
-
-            .btn-warning {
-                background: #fd7e14;
-                color: white;
-            }
-
-            .btn-warning:hover {
-                background: #e8680c;
-            }
-
-            .results-section {
-                background: #f8f9fa;
-                padding: 25px;
-                border-radius: var(--border-radius);
-                border: 1px solid #e9ecef;
-            }
-
-            .result-card {
-                background: white;
-                padding: 20px;
-                border-radius: 10px;
-                margin-bottom: 15px;
-                border-left: 4px solid #4facfe;
-                box-shadow: var(--card-shadow);
-            }
-
-            .result-value {
-                font-size: 2rem;
-                font-weight: bold;
-                color: #2c3e50;
-            }
-
-            .result-label {
-                color: #6c757d;
-                margin-top: 5px;
-            }
-
-            .loading-overlay {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(255, 255, 255, 0.9);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-                border-radius: var(--border-radius);
-            }
-
-            .loading-spinner {
-                width: 40px;
-                height: 40px;
-                border: 4px solid #f3f3f3;
-                border-top: 4px solid #4facfe;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-            }
-
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-
-            .section-divider {
-                margin: 30px 0;
-                border: none;
-                height: 2px;
-                background: var(--primary-gradient);
-                border-radius: 1px;
+            .card-body {
+                padding: 1rem;
             }
 
             .chart-container {
-                background: white;
-                padding: 20px;
-                border-radius: var(--border-radius);
-                margin-top: 20px;
-                box-shadow: var(--card-shadow);
-                overflow-x: auto;
-                overflow-y: hidden;
-                -webkit-overflow-scrolling: touch;
-                position: relative;
+                height: 300px;
             }
 
-            .chart-wrapper {
-                position: relative;
-                height: 400px;
-                width: 100%;
-                min-width: 100%;
+            .result-value {
+                font-size: 1.1rem;
             }
-
-            @media (max-width: 1200px) {
-                .content {
-                    grid-template-columns: 1fr;
-                }
+            .result-card {
+                padding: 1rem;
+                min-height: 60px;
             }
-
-            @media (max-width: 768px) {
-                .header h1 {
-                    font-size: 2rem;
-                }
-
-                .schedule-item,
-                .withdrawal-item {
-                    grid-template-columns: 1fr;
-                }
-
-                .content {
-                    padding: 15px;
-                }
-
-                .chart-wrapper {
-                    height: 300px;
-                    min-width: 90vw;
-                }
-                
-                .chart-container {
-                    padding: 10px;
-                    margin-left: -10px;
-                    margin-right: -10px;
-                    border-radius: 0;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>Compound Interest Calculator</h1>
-                <p>Calculate growth with flexible daily schedules and withdrawals</p>
-            </div>
-
-            <div class="content">
-                <div class="input-section">
-                    <h2>Initial Settings</h2>
-
-                    <div class="input-group">
-                        <label for="initialAmount">Initial Amount ($)</label>
-                        <input
-                            type="number"
-                            id="initialAmount"
-                            value="1840"
-                            step="0.01"
-                        />
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Portfolio Growth Calculator</h1>
+        
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Initial Setup</h5>
                     </div>
-
-                    <div class="input-group">
-                        <label for="startDate">Starting Date</label>
-                        <input
-                            type="date"
-                            id="startDate"
-                            value="2025-05-23"
-                        />
-                    </div>
-
-                    <div class="input-group">
-                        <label for="growthRate">Growth Rate per Occurrence (%)</label>
-                        <input
-                            type="number"
-                            id="growthRate"
-                            value="0.61"
-                            step="0.01"
-                        />
-                    </div>
-
-                    <div class="input-group">
-                        <label for="targetType">Target Type</label>
-                        <select id="targetType" onchange="toggleTargetInput()">
-                            <option value="multiplier">Target Multiplier</option>
-                            <option value="amount">Specific Amount</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group" id="multiplierGroup">
-                        <label for="targetMultiplier">Target Multiplier</label>
-                        <input
-                            type="number"
-                            id="targetMultiplier"
-                            value="2"
-                            step="0.01"
-                            min="1.01"
-                        />
-                    </div>
-
-                    <div class="input-group" id="amountGroup" style="display: none;">
-                        <label for="targetAmount">Target Amount ($)</label>
-                        <input
-                            type="number"
-                            id="targetAmount"
-                            value="3680"
-                            step="0.01"
-                            min="0.01"
-                        />
-                    </div>
-
-                    <h2 style="margin-top: 30px">Growth Schedule</h2>
-                    <div id="scheduleContainer">
-                        <div class="schedule-item">
-                            <div>
-                                <label>From Date:</label>
-                                <input
-                                    type="date"
-                                    class="from-date"
-                                    value="2025-05-23"
-                                />
-                            </div>
-                            <div>
-                                <label>To Date:</label>
-                                <input
-                                    type="date"
-                                    class="to-date"
-                                    value="2025-06-01"
-                                />
-                            </div>
-                            <div>
-                                <label>Times/Day:</label>
-                                <input
-                                    type="number"
-                                    class="times-day"
-                                    value="2"
-                                    min="1"
-                                />
-                            </div>
-                            <button
-                                class="btn btn-danger remove-schedule"
-                                onclick="removeSchedule(this)"
-                            >
-                                ×
-                            </button>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Initial Amount ($)</label>
+                            <input type="number" class="form-control" id="initialAmount" value="1840" min="0" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Growth Rate (%)</label>
+                            <input type="number" class="form-control" id="growthRate" value="0.61" min="0" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Target Type</label>
+                            <select class="form-control" id="targetType" onchange="toggleTargetInput()">
+                                <option value="amount">Specific Amount</option>
+                                <option value="multiplier">Target Multiplier</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="multiplierGroup" style="display: none;">
+                            <label class="form-label">Target Multiplier</label>
+                            <input type="number" class="form-control" id="targetMultiplier" value="2" min="1.01" step="0.01">
+                        </div>
+                        <div class="mb-3" id="amountGroup">
+                            <label class="form-label">Target Amount ($)</label>
+                            <input type="number" class="form-control" id="targetAmount" value="4000" min="0" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="text" class="form-control" id="startDate">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">End Date</label>
+                            <input type="text" class="form-control" id="endDate">
                         </div>
                     </div>
-
-                    <button
-                        class="btn btn-secondary add-schedule-btn"
-                        onclick="addSchedule()"
-                    >
-                        Add Schedule Period
-                    </button>
-
-                    <hr class="section-divider">
-
-                    <h2>Withdrawals (Optional)</h2>
-                    <p style="color: #6c757d; margin-bottom: 15px; font-size: 14px;">
-                        Add withdrawals to see how taking money affects your growth
-                    </p>
-                    <div id="withdrawalContainer">
-                        <!-- Withdrawals will be added here -->
-                    </div>
-
-                    <button
-                        class="btn btn-warning add-schedule-btn"
-                        onclick="addWithdrawal()"
-                    >
-                        Add Withdrawal
-                    </button>
-
-                    <button
-                        class="btn btn-primary"
-                        onclick="calculate()"
-                        style="width: 100%; margin-top: 20px"
-                    >
-                        Calculate
-                    </button>
                 </div>
 
-                <div class="results-section">
-                    <h2>Results</h2>
-                    <div id="resultsContainer">
-                        <p style="text-align: center; color: #6c757d; padding: 40px;">
-                            Click "Calculate" to see results
-                        </p>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Growth Schedule</h5>
+                        <button class="btn btn-primary btn-sm" onclick="addGrowthSchedule()">Add Schedule</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="growthSchedules"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Withdrawal Schedule</h5>
+                        <button class="btn btn-primary btn-sm" onclick="addWithdrawalSchedule()">Add Withdrawal</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="withdrawalSchedules"></div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" onclick="calculate()">Calculate</button>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                        <div id="results" class="mt-4"></div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <script>
-            // Utility functions
-            function formatCurrency(amount) {
-                return '$' + amount.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            }
+    <script>
+        let growthChart = null;
+        const datePickerConfig = {
+            enableTime: false,
+            dateFormat: "Y-m-d",
+            allowInput: true
+        };
 
-            function formatDate(date) {
-                return date.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                });
-            }
+        // Initialize date pickers
+        flatpickr("#startDate", {
+            ...datePickerConfig,
+            defaultDate: "2025-05-23"
+        });
+        flatpickr("#endDate", {
+            ...datePickerConfig,
+            defaultDate: "2025-12-31"
+        });
 
-            function formatMonth(date) {
-                return date.toLocaleDateString('en-US', {
-                    month: 'short',
-                    year: 'numeric'
-                });
-            }
+        function addGrowthSchedule() {
+            const container = document.getElementById('growthSchedules');
+            const scheduleDiv = document.createElement('div');
+            scheduleDiv.className = 'schedule-item';
 
-            // UI functions
-            function toggleTargetInput() {
-                const targetType = document.getElementById("targetType").value;
-                document.getElementById("multiplierGroup").style.display = targetType === "multiplier" ? "block" : "none";
-                document.getElementById("amountGroup").style.display = targetType === "amount" ? "block" : "none";
-            }
+            // Calculate default dates
+            let startDate = "2025-05-23";
+            let endDate = "2025-06-01";
 
-            function addSchedule() {
-                const container = document.getElementById("scheduleContainer");
-                const scheduleItems = container.querySelectorAll(".schedule-item");
-                let fromDate = "2025-05-23";
+            // If there are existing schedules, use the last end date + 1 as start date
+            const existingSchedules = container.querySelectorAll('.schedule-item');
+            if (existingSchedules.length > 0) {
+                const lastSchedule = existingSchedules[existingSchedules.length - 1];
+                const lastEndDate = new Date(lastSchedule.querySelectorAll('.date-picker')[1].value);
+                lastEndDate.setDate(lastEndDate.getDate() + 1);
+                startDate = lastEndDate.toISOString().split('T')[0];
                 
-                if (scheduleItems.length > 0) {
-                    const lastSchedule = scheduleItems[scheduleItems.length - 1];
-                    const lastToDate = new Date(lastSchedule.querySelector(".to-date").value);
-                    lastToDate.setDate(lastToDate.getDate() + 1);
-                    fromDate = lastToDate.toISOString().split('T')[0];
-                }
-
-                const newSchedule = document.createElement("div");
-                newSchedule.className = "schedule-item";
-                newSchedule.innerHTML = `
-                    <div>
-                        <label>From Date:</label>
-                        <input type="date" class="from-date" value="${fromDate}">
-                    </div>
-                    <div>
-                        <label>To Date:</label>
-                        <input type="date" class="to-date" value="2025-06-01">
-                    </div>
-                    <div>
-                        <label>Times/Day:</label>
-                        <input type="number" class="times-day" value="2" min="1">
-                    </div>
-                    <button class="btn btn-danger remove-schedule" onclick="removeSchedule(this)">×</button>
-                `;
-                container.appendChild(newSchedule);
+                // Set end date to 7 days after start date
+                const newEndDate = new Date(lastEndDate);
+                newEndDate.setDate(newEndDate.getDate() + 7);
+                endDate = newEndDate.toISOString().split('T')[0];
             }
 
-            function removeSchedule(button) {
-                const scheduleItems = document.querySelectorAll(".schedule-item");
-                if (scheduleItems.length > 1) {
-                    button.parentElement.remove();
+            scheduleDiv.innerHTML = `
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Start Date</label>
+                        <input type="text" class="form-control date-picker" value="${startDate}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">End Date</label>
+                        <input type="text" class="form-control date-picker" value="${endDate}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Times Per Day</label>
+                        <input type="number" class="form-control" value="2" min="1">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-outline-danger w-100" onclick="this.closest('.schedule-item').remove()">Remove</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(scheduleDiv);
+            flatpickr(scheduleDiv.querySelectorAll('.date-picker'), datePickerConfig);
+        }
+
+        function addWithdrawalSchedule() {
+            const container = document.getElementById('withdrawalSchedules');
+            const scheduleDiv = document.createElement('div');
+            scheduleDiv.className = 'schedule-item';
+            scheduleDiv.innerHTML = `
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Date</label>
+                        <input type="text" class="form-control date-picker">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Amount ($)</label>
+                        <input type="number" class="form-control" value="500" min="0" step="0.01">
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-outline-danger w-100" onclick="this.closest('.schedule-item').remove()">Remove</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(scheduleDiv);
+            flatpickr(scheduleDiv.querySelector('.date-picker'), datePickerConfig);
+        }
+
+        function calculate() {
+            const initialAmount = parseFloat(document.getElementById('initialAmount').value);
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const growthRate = parseFloat(document.getElementById('growthRate').value) / 100;
+            const targetType = document.getElementById('targetType').value;
+            const targetValue = targetType === 'multiplier' 
+                ? initialAmount * parseFloat(document.getElementById('targetMultiplier').value)
+                : parseFloat(document.getElementById('targetAmount').value);
+
+            // Get growth schedules
+            const growthSchedules = Array.from(document.getElementById('growthSchedules').children).map(div => ({
+                startDate: new Date(div.querySelectorAll('.date-picker')[0].value),
+                endDate: new Date(div.querySelectorAll('.date-picker')[1].value),
+                timesPerDay: parseInt(div.querySelector('input[type="number"]').value)
+            }));
+
+            // Get withdrawal schedules and sort them by date
+            const withdrawalSchedules = Array.from(document.getElementById('withdrawalSchedules').children).map(div => ({
+                date: new Date(div.querySelector('.date-picker').value),
+                amount: parseFloat(div.querySelector('input[type="number"]').value)
+            })).sort((a, b) => a.date - b.date);
+
+            console.log('Withdrawal schedules:', withdrawalSchedules); // Debug log
+
+            const results = calculateGrowth(initialAmount, startDate, endDate, growthRate, targetValue, growthSchedules, withdrawalSchedules);
+            displayResults(results);
+        }
+
+        function calculateGrowth(initialAmount, startDate, endDate, growthRate, targetValue, growthSchedules, withdrawalSchedules) {
+            const results = {
+                progress: [],
+                finalAmount: 0,
+                totalWithdrawn: 0,
+                totalGrowth: 0,
+                daysElapsed: 0,
+                totalOccurrences: 0
+            };
+
+            let currentAmount = initialAmount;
+            let currentDate = new Date(startDate);
+            const lastScheduleDate = new Date(Math.max(...growthSchedules.map(s => new Date(s.endDate))));
+
+            // Add initial point
+            results.progress.push({
+                date: new Date(startDate),
+                amount: initialAmount,
+                timesToday: 0,
+                isWithdrawal: false
+            });
+
+            // Sort growth schedules by start date
+            growthSchedules.sort((a, b) => a.startDate - b.startDate);
+
+            // Pre-calculate growth rates for each day
+            const dateMap = new Map();
+            let tempDate = new Date(startDate);
+            while (tempDate <= lastScheduleDate) {
+                const currentSchedule = growthSchedules.find(s => 
+                    tempDate >= s.startDate && tempDate <= s.endDate
+                );
+                if (currentSchedule) {
+                    dateMap.set(tempDate.toDateString(), currentSchedule.timesPerDay);
                 }
+                tempDate.setDate(tempDate.getDate() + 1);
             }
 
-            function addWithdrawal() {
-                const container = document.getElementById("withdrawalContainer");
-                const scheduleItems = document.querySelectorAll(".schedule-item");
-                let withdrawalDate = "2025-06-01";
+            // Reset currentDate for main calculation
+            currentDate = new Date(startDate);
+
+            // Main calculation loop
+            while (currentAmount < targetValue && currentDate <= lastScheduleDate) {
+                const currentDateStr = currentDate.toDateString();
                 
-                if (scheduleItems.length > 0) {
-                    const lastSchedule = scheduleItems[scheduleItems.length - 1];
-                    const lastToDate = new Date(lastSchedule.querySelector(".to-date").value);
-                    lastToDate.setDate(lastToDate.getDate() + 1);
-                    withdrawalDate = lastToDate.toISOString().split('T')[0];
+                // Process withdrawals for this day
+                const todaysWithdrawals = withdrawalSchedules.filter(w => 
+                    w.date.toDateString() === currentDateStr
+                );
+
+                for (const withdrawal of todaysWithdrawals) {
+                    if (currentAmount >= withdrawal.amount) {
+                        currentAmount -= withdrawal.amount;
+                        results.totalWithdrawn += withdrawal.amount;
+                        results.progress.push({
+                            date: new Date(currentDate),
+                            amount: currentAmount,
+                            timesToday: 0,
+                            isWithdrawal: true,
+                            withdrawalAmount: withdrawal.amount
+                        });
+                    }
                 }
 
-                const newWithdrawal = document.createElement("div");
-                newWithdrawal.className = "withdrawal-item";
-                newWithdrawal.innerHTML = `
-                    <div>
-                        <label>Date:</label>
-                        <input type="date" class="withdrawal-date" value="${withdrawalDate}">
-                    </div>
-                    <div>
-                        <label>Amount ($):</label>
-                        <input type="number" class="withdrawal-amount" value="500" step="0.01" min="0.01">
-                    </div>
-                    <button class="btn btn-danger remove-withdrawal" onclick="removeWithdrawal(this)">×</button>
-                `;
-                container.appendChild(newWithdrawal);
+                // Process growth
+                const timesToday = dateMap.get(currentDateStr) || 0;
+                if (timesToday > 0) {
+                    for (let i = 0; i < timesToday; i++) {
+                        currentAmount *= (1 + growthRate);
+                        results.totalOccurrences++;
+                        
+                        if (currentAmount >= targetValue) {
+                            results.progress.push({
+                                date: new Date(currentDate),
+                                amount: currentAmount,
+                                timesToday: i + 1,
+                                isWithdrawal: false
+                            });
+                            break;
+                        }
+                    }
+                    
+                    if (currentAmount < targetValue) {
+                        results.progress.push({
+                            date: new Date(currentDate),
+                            amount: currentAmount,
+                            timesToday: timesToday,
+                            isWithdrawal: false
+                        });
+                    }
+                }
+
+                if (currentAmount >= targetValue) {
+                    break;
+                }
+
+                currentDate.setDate(currentDate.getDate() + 1);
             }
 
-            function removeWithdrawal(button) {
-                button.parentElement.remove();
-            }
-
-            // Calculation functions
-            function getInputValues() {
-                return {
-                    initialAmount: parseFloat(document.getElementById("initialAmount").value),
-                    startDate: new Date(document.getElementById("startDate").value),
-                    growthRate: parseFloat(document.getElementById("growthRate").value) / 100,
-                    targetType: document.getElementById("targetType").value,
-                    targetValue: document.getElementById("targetType").value === "multiplier"
-                        ? parseFloat(document.getElementById("initialAmount").value) * parseFloat(document.getElementById("targetMultiplier").value)
-                        : parseFloat(document.getElementById("targetAmount").value)
-                };
-            }
-
-            function getSchedule() {
-                const scheduleItems = document.querySelectorAll(".schedule-item");
-                return Array.from(scheduleItems).map(item => ({
-                    fromDate: new Date(item.querySelector(".from-date").value),
-                    toDate: new Date(item.querySelector(".to-date").value),
-                    timesDay: parseInt(item.querySelector(".times-day").value)
-                })).sort((a, b) => a.fromDate - b.fromDate);
-            }
-
-            function getWithdrawals() {
-                const withdrawalItems = document.querySelectorAll(".withdrawal-item");
-                return Array.from(withdrawalItems).map(item => ({
-                    date: new Date(item.querySelector(".withdrawal-date").value),
-                    amount: parseFloat(item.querySelector(".withdrawal-amount").value)
-                })).sort((a, b) => a.date - b.date);
-            }
-
-            function calculateGrowth(inputs, schedule, withdrawals) {
-                let amount = inputs.initialAmount;
-                let currentDate = new Date(inputs.startDate);
-                let totalOccurrences = 0;
-                let totalWithdrawn = 0;
-                const progress = [];
-                const withdrawalEvents = [];
-
-                // Find the last date from all schedules
-                const lastScheduleDate = new Date(Math.max(...schedule.map(s => new Date(s.toDate))));
-
-                // Add initial point
-                progress.push({
-                    date: new Date(inputs.startDate),
-                    amount: inputs.initialAmount,
+            // Add final point if we haven't reached target
+            if (currentAmount < targetValue) {
+                results.progress.push({
+                    date: new Date(lastScheduleDate),
+                    amount: currentAmount,
                     timesToday: 0,
                     isWithdrawal: false
                 });
-
-                // Pre-calculate growth rates
-                const dateMap = new Map();
-                while (currentDate <= lastScheduleDate) {
-                    const currentSchedule = schedule.find(s => 
-                        currentDate >= s.fromDate && currentDate <= s.toDate
-                    );
-                    if (currentSchedule) {
-                        dateMap.set(currentDate.toDateString(), currentSchedule.timesDay);
-                    }
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
-
-                // Reset currentDate for main calculation
-                currentDate = new Date(inputs.startDate);
-
-                // Main calculation loop
-                while (amount < inputs.targetValue && currentDate <= lastScheduleDate) {
-                    // Process withdrawals
-                    const todaysWithdrawals = withdrawals.filter(w => 
-                        w.date.toDateString() === currentDate.toDateString()
-                    );
-                    for (let withdrawal of todaysWithdrawals) {
-                        if (amount >= withdrawal.amount) {
-                            amount -= withdrawal.amount;
-                            totalWithdrawn += withdrawal.amount;
-                            withdrawalEvents.push({
-                                date: new Date(currentDate),
-                                amount: withdrawal.amount,
-                                balance: amount
-                            });
-                            progress.push({
-                                date: new Date(currentDate),
-                                amount: amount,
-                                timesToday: 0,
-                                isWithdrawal: true
-                            });
-                        }
-                    }
-
-                    // Process growth
-                    const timesToday = dateMap.get(currentDate.toDateString()) || 0;
-                    if (timesToday > 0) {
-                        for (let i = 0; i < timesToday; i++) {
-                            amount *= (1 + inputs.growthRate);
-                            totalOccurrences++;
-                            
-                            if (amount >= inputs.targetValue) {
-                                progress.push({
-                                    date: new Date(currentDate),
-                                    amount: amount,
-                                    timesToday: i + 1,
-                                    isWithdrawal: false
-                                });
-                                break;
-                            }
-                        }
-                        
-                        if (amount < inputs.targetValue) {
-                            progress.push({
-                                date: new Date(currentDate),
-                                amount: amount,
-                                timesToday: timesToday,
-                                isWithdrawal: false
-                            });
-                        }
-                    }
-
-                    if (amount >= inputs.targetValue) {
-                        break;
-                    }
-
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
-
-                // Add final point if we haven't reached target
-                if (amount < inputs.targetValue) {
-                    progress.push({
-                        date: new Date(lastScheduleDate),
-                        amount: amount,
-                        timesToday: 0,
-                        isWithdrawal: false
-                    });
-                }
-
-                return {
-                    finalAmount: amount,
-                    daysElapsed: Math.floor((currentDate - inputs.startDate) / (1000 * 60 * 60 * 24)),
-                    totalOccurrences,
-                    totalWithdrawn,
-                    progress,
-                    withdrawalEvents,
-                    lastScheduleDate
-                };
             }
 
-            function displayResults(results, inputs) {
-                const completionDate = new Date(inputs.startDate);
-                completionDate.setDate(completionDate.getDate() + results.daysElapsed);
+            results.finalAmount = currentAmount;
+            results.daysElapsed = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+            results.totalGrowth = currentAmount - initialAmount - results.totalWithdrawn;
 
-                // Create chart
-                const chartContainer = document.createElement('div');
-                chartContainer.className = 'chart-container';
-                chartContainer.innerHTML = `
-                    <h3>Growth Progress</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="progressChart"></canvas>
-                    </div>
-                `;
+            return results;
+        }
 
-                const resultsHTML = `
-                    <div class="result-card">
-                        <div class="result-value">${formatCurrency(results.finalAmount)}</div>
-                        <div class="result-label">Final Amount</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-value">${results.daysElapsed} days</div>
-                        <div class="result-label">Time to Reach Target</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-value">${formatDate(completionDate)}</div>
-                        <div class="result-label">Projected Completion Date</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-value">${results.totalOccurrences}</div>
-                        <div class="result-label">Total Growth Occurrences</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-value">${formatCurrency(results.totalWithdrawn)}</div>
-                        <div class="result-label">Total Withdrawn</div>
-                    </div>
-                    <div class="result-card">
-                        <div class="result-value">${((results.finalAmount / inputs.initialAmount) * 100).toFixed(2)}%</div>
-                        <div class="result-label">Percentage of Original</div>
-                    </div>
-                `;
+        function formatCurrency(value) {
+            const absValue = Math.abs(value);
+            const formatted = absValue.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            return (value < 0 ? '-$' : '$') + formatted;
+        }
 
-                // Create chart after results are displayed
-                setTimeout(() => {
-                    const ctx = document.getElementById('progressChart').getContext('2d');
-                    
-                    // Calculate Y-axis ticks
-                    const maxAmount = Math.max(...results.progress.map(p => p.amount));
-                    const minAmount = Math.min(...results.progress.map(p => p.amount));
-                    const yAxisStep = 5000;
-                    const yAxisMin = Math.floor(minAmount / yAxisStep) * yAxisStep;
-                    const yAxisMax = Math.ceil(maxAmount / yAxisStep) * yAxisStep;
+        function displayResults(results) {
+            // Update chart
+            if (growthChart) {
+                growthChart.destroy();
+            }
 
-                    // Prepare data for chart
-                    const labels = results.progress.map(p => formatMonth(p.date));
-                    const amounts = results.progress.map(p => p.amount);
-                    const withdrawalPoints = results.progress.map(p => p.isWithdrawal ? p.amount : null);
-
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    label: 'Amount',
-                                    data: amounts,
-                                    borderColor: '#4facfe',
-                                    backgroundColor: 'rgba(79, 172, 254, 0.1)',
-                                    fill: true,
-                                    tension: 0.4,
-                                    pointRadius: 0
-                                },
-                                {
-                                    label: 'Withdrawal',
-                                    data: withdrawalPoints,
-                                    borderColor: '#dc3545',
-                                    backgroundColor: '#dc3545',
-                                    pointRadius: 6,
-                                    pointStyle: 'circle',
-                                    showLine: false
-                                }
-                            ]
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            window.growthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Portfolio Value',
+                        data: results.progress.map(p => ({
+                            x: p.date,
+                            y: p.amount
+                        })),
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#2563eb',
+                        pointBorderColor: '#fff',
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: true,
-                                    position: 'top',
-                                    labels: {
-                                        usePointStyle: true,
-                                        pointStyle: 'circle'
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const point = results.progress[context.dataIndex];
+                                    let label = `Portfolio Value: ${formatCurrency(point.amount)}`;
+                                    if (point.isWithdrawal) {
+                                        label += ` (Withdrawal: ${formatCurrency(point.withdrawalAmount)})`;
                                     }
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        title: function(context) {
-                                            const index = context[0].dataIndex;
-                                            return formatDate(results.progress[index].date);
-                                        },
-                                        label: function(context) {
-                                            const value = context.raw;
-                                            if (value === null) return null;
-                                            return formatCurrency(value);
-                                        }
-                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'month',
+                                displayFormats: {
+                                    month: 'MMM yyyy'
                                 }
                             },
-                            scales: {
-                                y: {
-                                    beginAtZero: false,
-                                    min: yAxisMin,
-                                    max: yAxisMax,
-                                    ticks: {
-                                        stepSize: yAxisStep,
-                                        callback: function(value) {
-                                            return formatCurrency(value);
-                                        }
-                                    }
-                                },
-                                x: {
-                                    ticks: {
-                                        maxRotation: 45,
-                                        minRotation: 45
-                                    }
+                            grid: {
+                                display: false,
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                color: '#666',
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                color: '#666',
+                                callback: function(value) {
+                                    return formatCurrency(value);
                                 }
                             }
                         }
-                    });
-                }, 0);
-
-                return resultsHTML + chartContainer.outerHTML;
-            }
-
-            function calculate() {
-                const resultsContainer = document.getElementById("resultsContainer");
-                resultsContainer.innerHTML = `
-                    <div class="loading-overlay">
-                        <div class="loading-spinner"></div>
-                    </div>
-                `;
-
-                setTimeout(() => {
-                    try {
-                        const inputs = getInputValues();
-                        const schedule = getSchedule();
-                        const withdrawals = getWithdrawals();
-                        const results = calculateGrowth(inputs, schedule, withdrawals);
-                        resultsContainer.innerHTML = displayResults(results, inputs);
-                    } catch (error) {
-                        resultsContainer.innerHTML = `
-                            <div class="result-card" style="border-left-color: #dc3545;">
-                                <div class="result-value">Error</div>
-                                <div class="result-label">${error.message}</div>
-                            </div>
-                        `;
                     }
-                }, 0);
-            }
-        </script>
-    </body>
+                }
+            });
+
+            // Update results display
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="row g-4 text-center">
+                    <div class="col-6 col-md-4">
+                        <div class="result-card">
+                            <div class="result-value">${formatCurrency(results.finalAmount)}</div>
+                            <div class="result-label">Final Amount</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="result-card">
+                            <div class="result-value">${results.daysElapsed} days</div>
+                            <div class="result-label">Time to Reach Target</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="result-card">
+                            <div class="result-value">${results.totalOccurrences}</div>
+                            <div class="result-label">Total Growth Occurrences</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="result-card">
+                            <div class="result-value">${formatCurrency(results.totalWithdrawn)}</div>
+                            <div class="result-label">Total Withdrawn</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="result-card">
+                            <div class="result-value">${formatCurrency(results.totalGrowth)}</div>
+                            <div class="result-label">Total Growth</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Add initial schedules
+        addGrowthSchedule();
+        addWithdrawalSchedule();
+
+        // Add this function to handle target type toggle
+        function toggleTargetInput() {
+            const targetType = document.getElementById('targetType').value;
+            document.getElementById('multiplierGroup').style.display = targetType === 'multiplier' ? 'block' : 'none';
+            document.getElementById('amountGroup').style.display = targetType === 'amount' ? 'block' : 'none';
+        }
+
+        // Call toggleTargetInput on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleTargetInput();
+        });
+    </script>
+</body>
 </html>
