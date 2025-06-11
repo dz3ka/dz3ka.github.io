@@ -18,6 +18,8 @@
             --border-color: #e2e8f0;
             --card-bg: #fff;
             --result-label: #64748b;
+            --success-color: #059669;
+            --danger-color: #dc2626;
         }
         
         body {
@@ -26,21 +28,34 @@
             color: var(--text-color);
             line-height: 1.6;
             transition: background 0.2s, color 0.2s;
+            padding: 2rem 0;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem 1rem;
+            padding: 0 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            text-align: center;
         }
 
         .card {
             background: var(--card-bg);
             border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             border: 1px solid var(--border-color);
             margin-bottom: 1.5rem;
-            transition: background 0.2s, border 0.2s;
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
         .card-header {
@@ -48,6 +63,16 @@
             border-bottom: 1px solid var(--border-color);
             padding: 1.25rem;
             border-radius: 1rem 1rem 0 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h5 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--text-color);
         }
 
         .card-body {
@@ -58,6 +83,7 @@
             font-weight: 500;
             color: var(--text-color);
             margin-bottom: 0.5rem;
+            font-size: 0.95rem;
         }
 
         .form-control {
@@ -67,6 +93,7 @@
             transition: all 0.2s;
             background: var(--card-bg);
             color: var(--text-color);
+            font-size: 1rem;
         }
 
         .form-control:focus {
@@ -76,33 +103,41 @@
             color: var(--text-color);
         }
 
+        .btn {
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: all 0.2s;
             color: #fff;
         }
 
         .btn-primary:hover {
             background-color: var(--secondary-color);
             border-color: var(--secondary-color);
+            transform: translateY(-1px);
         }
 
         .btn-outline-danger {
-            color: #dc2626;
-            border-color: #dc2626;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
+            color: var(--danger-color);
+            border-color: var(--danger-color);
             background: transparent;
         }
 
         .btn-outline-danger:hover {
-            background-color: #dc2626;
+            background-color: var(--danger-color);
             color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
         }
 
         .chart-container {
@@ -111,14 +146,20 @@
             width: 100%;
             background: var(--card-bg);
             border-radius: 1rem;
+            padding: 1rem;
         }
 
         .schedule-item {
             background: white;
             border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            padding: 1rem;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
             margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .schedule-item:hover {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
 
         .schedule-item:last-child {
@@ -128,34 +169,69 @@
         .result-card {
             background: white;
             border-radius: 1rem;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
+            padding: 2rem 1rem;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 90px;
+            min-height: 110px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px 0 rgba(37,99,235,0.04);
+            transition: box-shadow 0.2s;
+        }
+
+        .result-card:hover {
+            box-shadow: 0 4px 16px 0 rgba(37,99,235,0.10);
         }
 
         .result-value {
-            font-size: 1.6rem;
+            font-size: 2rem;
             font-weight: 700;
             color: var(--primary-color);
-            white-space: nowrap;
-            letter-spacing: 0.01em;
-            line-height: 1.1;
+            margin-bottom: 0.25rem;
+            word-break: break-all;
+            text-align: center;
         }
 
         .result-label {
-            font-size: 0.95rem;
+            font-size: 1.05rem;
             color: var(--result-label);
-            margin-top: 0.25rem;
-            white-space: nowrap;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .result-card {
+                padding: 1.2rem 0.5rem;
+                min-height: 80px;
+            }
+            .result-value {
+                font-size: 1.2rem;
+            }
+            .result-label {
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Responsive results grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 1rem 0;
+            }
+
             .container {
-                padding: 1rem;
+                padding: 0 0.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 1.5rem;
             }
 
             .card-body {
@@ -189,11 +265,11 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label">Initial Amount ($)</label>
-                            <input type="number" class="form-control" id="initialAmount" value="1840" min="0" step="0.01">
+                            <input type="number" class="form-control" id="initialAmount" value="1840" min="0" step="1">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Growth Rate (%)</label>
-                            <input type="number" class="form-control" id="growthRate" value="0.61" min="0" step="0.01">
+                            <input type="number" class="form-control" id="growthRate" value="0.623" min="0" step="0.01">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Target Type</label>
@@ -204,19 +280,15 @@
                         </div>
                         <div class="mb-3" id="multiplierGroup" style="display: none;">
                             <label class="form-label">Target Multiplier</label>
-                            <input type="number" class="form-control" id="targetMultiplier" value="2" min="1.01" step="0.01">
+                            <input type="number" class="form-control" id="targetMultiplier" value="2" min="1.5" step="0.5">
                         </div>
                         <div class="mb-3" id="amountGroup">
                             <label class="form-label">Target Amount ($)</label>
-                            <input type="number" class="form-control" id="targetAmount" value="4000" min="0" step="0.01">
+                            <input type="number" class="form-control" id="targetAmount" value="4000" min="0" step="1">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Start Date</label>
                             <input type="text" class="form-control" id="startDate">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">End Date</label>
-                            <input type="text" class="form-control" id="endDate">
                         </div>
                     </div>
                 </div>
@@ -287,7 +359,7 @@
 
             // Calculate default dates
             let startDate = "2025-05-23";
-            let endDate = "2025-06-01";
+            let endDate = "2025-06-22"; // 30 days after start by default
 
             // If there are existing schedules, use the last end date + 1 as start date
             const existingSchedules = container.querySelectorAll('.schedule-item');
@@ -297,9 +369,9 @@
                 lastEndDate.setDate(lastEndDate.getDate() + 1);
                 startDate = lastEndDate.toISOString().split('T')[0];
                 
-                // Set end date to 7 days after start date
+                // Set end date to 30 days after start date
                 const newEndDate = new Date(lastEndDate);
-                newEndDate.setDate(newEndDate.getDate() + 7);
+                newEndDate.setDate(newEndDate.getDate() + 30);
                 endDate = newEndDate.toISOString().split('T')[0];
             }
 
@@ -353,7 +425,6 @@
         function calculate() {
             const initialAmount = parseFloat(document.getElementById('initialAmount').value);
             const startDate = new Date(document.getElementById('startDate').value);
-            const endDate = new Date(document.getElementById('endDate').value);
             const growthRate = parseFloat(document.getElementById('growthRate').value) / 100;
             const targetType = document.getElementById('targetType').value;
             const targetValue = targetType === 'multiplier' 
@@ -373,20 +444,26 @@
                 amount: parseFloat(div.querySelector('input[type="number"]').value)
             })).sort((a, b) => a.date - b.date);
 
-            console.log('Withdrawal schedules:', withdrawalSchedules); // Debug log
+            // Debug logs
+            console.log('Initial Amount:', initialAmount);
+            console.log('Growth Rate:', growthRate);
+            console.log('Target Value:', targetValue);
+            console.log('Growth Schedules:', growthSchedules);
+            console.log('Withdrawal Schedules:', withdrawalSchedules);
 
-            const results = calculateGrowth(initialAmount, startDate, endDate, growthRate, targetValue, growthSchedules, withdrawalSchedules);
+            const results = calculateGrowth(initialAmount, startDate, null, growthRate, targetValue, growthSchedules, withdrawalSchedules);
             displayResults(results);
         }
 
-        function calculateGrowth(initialAmount, startDate, endDate, growthRate, targetValue, growthSchedules, withdrawalSchedules) {
+        function calculateGrowth(initialAmount, startDate, _endDate, growthRate, targetValue, growthSchedules, withdrawalSchedules) {
             const results = {
                 progress: [],
                 finalAmount: 0,
                 totalWithdrawn: 0,
                 totalGrowth: 0,
                 daysElapsed: 0,
-                totalOccurrences: 0
+                totalOccurrences: 0,
+                goalDate: null
             };
 
             let currentAmount = initialAmount;
@@ -447,7 +524,8 @@
                 const timesToday = dateMap.get(currentDateStr) || 0;
                 if (timesToday > 0) {
                     for (let i = 0; i < timesToday; i++) {
-                        currentAmount *= (1 + growthRate);
+                        const growthAmount = currentAmount * growthRate;
+                        currentAmount += growthAmount;
                         results.totalOccurrences++;
                         
                         if (currentAmount >= targetValue) {
@@ -457,6 +535,7 @@
                                 timesToday: i + 1,
                                 isWithdrawal: false
                             });
+                            results.goalDate = new Date(currentDate);
                             break;
                         }
                     }
@@ -492,6 +571,9 @@
             results.daysElapsed = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
             results.totalGrowth = currentAmount - initialAmount - results.totalWithdrawn;
 
+            // Debug logs
+            console.log('Final Results:', results);
+
             return results;
         }
 
@@ -504,14 +586,19 @@
             return (value < 0 ? '-$' : '$') + formatted;
         }
 
+        function formatDate(date) {
+            if (!date) return '-';
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
         function displayResults(results) {
-            // Update chart
-            if (growthChart) {
+            // Destroy existing chart if it exists
+            if (growthChart instanceof Chart) {
                 growthChart.destroy();
             }
 
             const ctx = document.getElementById('growthChart').getContext('2d');
-            window.growthChart = new Chart(ctx, {
+            growthChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     datasets: [{
@@ -572,9 +659,8 @@
                             },
                             ticks: {
                                 color: '#666',
-                                callback: function(value) {
-                                    return formatCurrency(value);
-                                }
+                                maxRotation: 45,
+                                minRotation: 45
                             }
                         },
                         y: {
@@ -596,36 +682,30 @@
             // Update results display
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = `
-                <div class="row g-4 text-center">
-                    <div class="col-6 col-md-4">
-                        <div class="result-card">
-                            <div class="result-value">${formatCurrency(results.finalAmount)}</div>
-                            <div class="result-label">Final Amount</div>
-                        </div>
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-value">${formatCurrency(results.finalAmount)}</div>
+                        <div class="result-label">Final Amount</div>
                     </div>
-                    <div class="col-6 col-md-4">
-                        <div class="result-card">
-                            <div class="result-value">${results.daysElapsed} days</div>
-                            <div class="result-label">Time to Reach Target</div>
-                        </div>
+                    <div class="result-card">
+                        <div class="result-value">${results.daysElapsed} days</div>
+                        <div class="result-label">Time to Reach Target</div>
                     </div>
-                    <div class="col-6 col-md-4">
-                        <div class="result-card">
-                            <div class="result-value">${results.totalOccurrences}</div>
-                            <div class="result-label">Total Growth Occurrences</div>
-                        </div>
+                    <div class="result-card">
+                        <div class="result-value">${results.totalOccurrences}</div>
+                        <div class="result-label">Total Growth Occurrences</div>
                     </div>
-                    <div class="col-6 col-md-4">
-                        <div class="result-card">
-                            <div class="result-value">${formatCurrency(results.totalWithdrawn)}</div>
-                            <div class="result-label">Total Withdrawn</div>
-                        </div>
+                    <div class="result-card">
+                        <div class="result-value">${formatCurrency(results.totalWithdrawn)}</div>
+                        <div class="result-label">Total Withdrawn</div>
                     </div>
-                    <div class="col-6 col-md-4">
-                        <div class="result-card">
-                            <div class="result-value">${formatCurrency(results.totalGrowth)}</div>
-                            <div class="result-label">Total Growth</div>
-                        </div>
+                    <div class="result-card">
+                        <div class="result-value">${formatCurrency(results.totalGrowth)}</div>
+                        <div class="result-label">Total Growth</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-value">${formatDate(results.goalDate)}</div>
+                        <div class="result-label">Goal Achievement Date</div>
                     </div>
                 </div>
             `;
@@ -633,7 +713,6 @@
 
         // Add initial schedules
         addGrowthSchedule();
-        addWithdrawalSchedule();
 
         // Add this function to handle target type toggle
         function toggleTargetInput() {
